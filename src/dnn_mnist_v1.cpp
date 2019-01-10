@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 // The contents of this file are in the public domain. See LICENSE_FOR_EXAMPLE_PROGRAMS.txt
 /*
     This is an example illustrating the use of the deep learning tools from the
@@ -21,10 +22,22 @@
 #include <iostream>
 #include <string>
 
+// Custom includes
+#include "get_platform.h"
+#include "file_parser.h"
+#include "get_current_time.h"
+
+// dlib includes
 #include <dlib/dnn.h>
 #include <dlib/data_io.h>
 
 using namespace std;
+
+//----------------------------------------------------------------------------------
+std::string version;
+std::string net_name = "mnist_net_";
+std::string net_sync_name = "mnist_sync";
+std::string logfileName = "mnist_log_";
 
 //----------------------------------------------------------------------------------
 
@@ -67,13 +80,21 @@ int main(int argc, char** argv)
         // cout << "put them in a folder.  Then give that folder as input to this program." << endl;
         // return 1;
     // }
+    std::string sdate, stime;
+
+    std::ofstream DataLogStream;
 
     std::string data_directory = "../data";
     std::string save_directry = "../results/";
     std::string net_directory = "../nets/";
     
     const std::vector<int> gpus = { 0 };
-    
+
+    typedef std::chrono::duration<double> d_sec;
+    auto start_time = chrono::system_clock::now();
+    auto stop_time = chrono::system_clock::now();
+    auto elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+
     // MNIST is broken into two parts, a training set of 60000 images and a test set of
     // 10000 images.  Each image is labeled so that we know what hand written digit is
     // depicted.  These next statements load the dataset into memory.
@@ -117,6 +138,18 @@ int main(int argc, char** argv)
 
     try
     {
+        get_current_time(sdate, stime);
+        logfileName = logfileName + sdate + "_" + stime + ".txt";
+
+        std::cout << "Log File:             " << (save_directry + logfileName) << std::endl;
+        DataLogStream.open((save_directry + logfileName), ios::out | ios::app);
+
+        // Add the date and time to the start of the log file
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        DataLogStream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl;
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
+
+
         // So with that out of the way, we can make a network instance.
         net_type net;
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
@@ -124,24 +157,33 @@ int main(int argc, char** argv)
         dlib::dnn_trainer<net_type, dlib::sgd> trainer(net, dlib::sgd(), gpus);
         trainer.set_learning_rate(0.0001);
         trainer.set_min_learning_rate(0.000001);
-        trainer.set_mini_batch_size(4096 * gpus.size());
-        trainer.set_max_num_epochs(10000);
+        trainer.set_mini_batch_size(256 * gpus.size());
+        trainer.set_max_num_epochs(30000);
         trainer.set_iterations_without_progress_threshold(2000);
-        trainer.set_synchronization_file((net_directory + "mnist_sync"), std::chrono::minutes(2));
+        trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(2));
         trainer.be_verbose();
         
         std::cout << std::endl << trainer << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
+        DataLogStream << trainer << std::endl;
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
 
+        std::cout << "Net Name: " << net_name << std::endl;
         std::cout << net << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
+        DataLogStream << "Net Name: " << net_name << std::endl; 
+        DataLogStream << net << std::endl;
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
 
         // Finally, this line begins training.  By default, it runs SGD with our specified
         // learning rate until the loss stops decreasing.  Then it reduces the learning rate by
         // a factor of 10 and continues running until the loss stops decreasing again.  It will
         // keep doing this until the learning rate has dropped below the min learning rate
         // defined above or the maximum number of epochs as been executed (defaulted to 10000). 
+        std::cout << "Starting Training..." << std::endl;
+        start_time = chrono::system_clock::now(); 
         trainer.train(training_images, training_labels);
+        stop_time = chrono::system_clock::now();
 
         // At this point our net object should have learned how to classify MNIST images.  But
         // before we try it out let's save it to disk.  Note that, since the trainer has been
@@ -151,11 +193,14 @@ int main(int argc, char** argv)
         // about that kind of transient data so that our file will be smaller.  We do this by
         // "cleaning" the network before saving it.
         net.clean();
-        dlib::serialize((net_directory+"mnist_network.dat")) << net;
+        dlib::serialize((net_directory+ net_name + ".dat")) << net;
 
         // Now if we later wanted to recall the network from disk we can simply say:
         // deserialize("mnist_network.dat") >> net;
 
+        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+        std::cout << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
+        DataLogStream << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
 
         // Now let's run the training images through the network.  This statement runs all the
         // images through it and asks the loss layer to convert the network's raw output into
@@ -181,6 +226,9 @@ int main(int argc, char** argv)
         std::cout << "Test accuracy:  " << test_results(0,2) << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
 
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        DataLogStream << training_results(0, 0) << ", " << training_results(0, 1) << ", " << training_results(0, 2) << ", "
+                      << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << std::endl;
 
         // Finally, you can also save network parameters to XML files if you want to do
         // something with the network in another tool.  For example, you could use dlib's
