@@ -38,6 +38,7 @@ std::string version;
 std::string net_name = "mnist_net_";
 std::string net_sync_name = "mnist_sync";
 std::string logfileName = "mnist_log_";
+std::string platform;
 
 //----------------------------------------------------------------------------------
 
@@ -84,9 +85,11 @@ int main(int argc, char** argv)
 
     std::ofstream DataLogStream;
 
-    std::string data_directory = "../data";
-    std::string save_directry = "../results/";
-    std::string net_directory = "../nets/";
+    const std::string os_file_sep = "/";
+    std::string program_root;
+    std::string data_directory;     // = "../data";
+    std::string save_directry;      // = "../results/";
+    std::string net_directory;      // = "../nets/";
     
     const std::vector<int> gpus = { 0 };
 
@@ -103,9 +106,47 @@ int main(int argc, char** argv)
     std::vector<unsigned long> training_labels;
     std::vector<unsigned long> testing_labels;
     
+
+    // check the platform
+    getPlatform(platform);
+    uint8_t HPC = 0;
+
+    if (platform.compare(0, 3, "HPC") == 0)
+    {
+        std::cout << "HPC Platform Detected." << std::endl;
+        HPC = 1;
+    }
+
+    // setup save variable locations
+#if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
+    program_root = get_path(get_path(get_path(std::string(argv[0]), "\\"), "\\"), "\\") + os_file_sep;
+    net_directory = program_root + "nets/";
+    save_directry = program_root + "results/";
+    data_directory = "../data";
+#else    
+    if (HPC == 1)
+    {
+        //HPC version
+        program_root = get_path(get_path(get_path(std::string(argv[0]), os_file_sep), os_file_sep), os_file_sep) + os_file_sep;
+        data_directory = "/p/home/dremerso/Projects/mnist/data";
+    }
+    else
+    {
+        // Ubuntu
+        program_root = "/home/owner/MNIST/";
+        data_directory = "../data";
+    }
+
+    net_directory = program_root + "nets/";
+    save_directry = program_root + "results/";
+
+#endif
+
     // load the data in using the dlib built in function
     dlib::load_mnist_dataset(data_directory, training_images, training_labels, testing_images, testing_labels);
 
+    std::cout << "Loaded " << training_images.size() << " training images." << std::endl;
+    std::cout << "Loaded " << testing_images.size() << " test images." << std::endl << std::endl;
 
     // Now let's define the LeNet.  Broadly speaking, there are 3 parts to a network
     // definition.  The loss layer, a bunch of computational layers, and then an input
@@ -141,7 +182,7 @@ int main(int argc, char** argv)
         get_current_time(sdate, stime);
         logfileName = logfileName + sdate + "_" + stime + ".txt";
 
-        std::cout << "Log File:             " << (save_directry + logfileName) << std::endl;
+        std::cout << "Log File: " << (save_directry + logfileName) << std::endl;
         DataLogStream.open((save_directry + logfileName), ios::out | ios::app);
 
         // Add the date and time to the start of the log file
