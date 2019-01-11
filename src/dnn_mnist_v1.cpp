@@ -155,9 +155,9 @@ int main(int argc, char** argv)
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
         // gradient descent with an initial learning rate of 0.01 to accomplish this.
         dlib::dnn_trainer<net_type, dlib::sgd> trainer(net, dlib::sgd(), gpus);
-        trainer.set_learning_rate(0.0001);
-        trainer.set_min_learning_rate(0.000001);
-        trainer.set_mini_batch_size(256 * gpus.size());
+        trainer.set_learning_rate(0.01);
+        trainer.set_min_learning_rate(0.00001);
+        trainer.set_mini_batch_size(8192 * gpus.size());
         trainer.set_max_num_epochs(30000);
         trainer.set_iterations_without_progress_threshold(2000);
         trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(2));
