@@ -34,7 +34,7 @@
 using namespace std;
 
 //----------------------------------------------------------------------------------
-std::string version = "L11";
+std::string version = "L08";
 std::string net_name = "mnist_net_" + version;
 std::string net_sync_name = "mnist_sync_" + version;
 std::string logfileName = "mnist_log_" + version + "_";
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
         net_type net(dlib::num_fc_outputs(10), 
             dlib::num_fc_outputs(84), 
             dlib::num_fc_outputs(120),
-            dlib::num_con_outputs(16),
+            dlib::num_con_outputs(14),
             dlib::num_con_outputs(5));
 
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
@@ -252,8 +252,14 @@ int main(int argc, char** argv)
         // labels.
         std::cout << std::endl << "Analyzing Training Results..." << std::endl << std::endl;
 
+        start_time = chrono::system_clock::now();
         dlib::matrix<double, 1, 3> training_results = eval_net_performance(net, training_images, training_labels);
+        stop_time = chrono::system_clock::now();
+        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+        double avg_train = elapsed_time.count() / (double)training_images.size();
+
         std::cout << "------------------------------------------------------------------" << std::endl;
+        std::cout << "Average run time:   " << avg_train << std::endl;
         std::cout << "Training num_right: " << training_results(0,0) << std::endl;
         std::cout << "Training num_wrong: " << training_results(0,1) << std::endl;
         std::cout << "Training accuracy:  " << training_results(0,2) << std::endl;
@@ -263,9 +269,14 @@ int main(int argc, char** argv)
         // MNIST is an easy dataset, we should see at least 99% accuracy.
         std::cout << std::endl << "Analyzing Test Results..." << std::endl << std::endl;
 
+        start_time = chrono::system_clock::now();
         dlib::matrix<double, 1, 3> test_results = eval_net_performance(net, testing_images, testing_labels);
+        stop_time = chrono::system_clock::now();
+        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+        double avg_test = elapsed_time.count() / (double)training_images.size();
 
         std::cout << "------------------------------------------------------------------" << std::endl;
+        std::cout << "Average run time:   " << avg_test << std::endl;
         std::cout << "Test num_right: " << test_results(0,0) << std::endl;
         std::cout << "Test num_wrong: " << test_results(0,1) << std::endl;
         std::cout << "Test accuracy:  " << test_results(0,2) << std::endl;
@@ -273,7 +284,8 @@ int main(int argc, char** argv)
 
         DataLogStream << "------------------------------------------------------------------" << std::endl;
         DataLogStream << training_results(0, 0) << ", " << training_results(0, 1) << ", " << training_results(0, 2) << ", "
-                      << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << std::endl;
+                      << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", "
+                      << avg_train << ", " << avg_test << std::endl;
 
         // Finally, you can also save network parameters to XML files if you want to do
         // something with the network in another tool.  For example, you could use dlib's
