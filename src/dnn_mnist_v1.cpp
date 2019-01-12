@@ -34,7 +34,7 @@
 using namespace std;
 
 //----------------------------------------------------------------------------------
-std::string version = "2";
+std::string version = "L11";
 std::string net_name = "mnist_net_" + version;
 std::string net_sync_name = "mnist_sync_" + version;
 std::string logfileName = "mnist_log_" + version + "_";
