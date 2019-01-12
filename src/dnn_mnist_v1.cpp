@@ -192,7 +192,12 @@ int main(int argc, char** argv)
 
 
         // So with that out of the way, we can make a network instance.
-        net_type net;
+        net_type net(dlib::num_fc_outputs(10), 
+            dlib::num_fc_outputs(84), 
+            dlib::num_fc_outputs(120),
+            dlib::num_con_outputs(16),
+            dlib::num_con_outputs(5));
+
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
         // gradient descent with an initial learning rate of 0.01 to accomplish this.
         dlib::dnn_trainer<net_type, dlib::sgd> trainer(net, dlib::sgd(), gpus);
