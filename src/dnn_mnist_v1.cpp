@@ -34,7 +34,7 @@
 using namespace std;
 
 //----------------------------------------------------------------------------------
-std::string version = "L05";
+std::string version = "L03";
 std::string net_name = "mnist_net_" + version;
 std::string net_sync_name = "mnist_sync_" + version;
 std::string logfileName = "mnist_log_" + version + "_";
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
 
         // So with that out of the way, we can make a network instance.
         net_type net(dlib::num_fc_outputs(10), 
-            dlib::num_fc_outputs(84), 
+            dlib::num_fc_outputs(60), 
             dlib::num_fc_outputs(75),
             dlib::num_con_outputs(14),
             dlib::num_con_outputs(5));
