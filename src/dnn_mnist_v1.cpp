@@ -193,7 +193,7 @@ int main(int argc, char** argv)
         // So with that out of the way, we can make a network instance.
         net_type net(dlib::num_fc_outputs(10), 
             dlib::num_fc_outputs(84), 
-            dlib::num_fc_outputs(120),
+            dlib::num_fc_outputs(75),
             dlib::num_con_outputs(14),
             dlib::num_con_outputs(5));
 
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
         dlib::matrix<double, 1, 3> test_results = eval_net_performance(net, testing_images, testing_labels);
         stop_time = chrono::system_clock::now();
         elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        double avg_test = elapsed_time.count() / (double)training_images.size();
+        double avg_test = elapsed_time.count() / (double)testing_images.size();
 
         std::cout << "------------------------------------------------------------------" << std::endl;
         std::cout << "Average run time:   " << avg_test << std::endl;
