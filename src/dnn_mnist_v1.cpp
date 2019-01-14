@@ -34,7 +34,7 @@
 using namespace std;
 
 //----------------------------------------------------------------------------------
-std::string version = "L03";
+std::string version = "L03_4_1";
 std::string net_name = "mnist_net_" + version;
 std::string net_sync_name = "mnist_sync_" + version;
 std::string logfileName = "mnist_log_" + version + "_";
@@ -192,20 +192,21 @@ int main(int argc, char** argv)
 
         // So with that out of the way, we can make a network instance.
         net_type net(dlib::num_fc_outputs(10), 
-            dlib::num_fc_outputs(60), 
-            dlib::num_fc_outputs(75),
-            dlib::num_con_outputs(14),
+            dlib::num_fc_outputs(50), 
+            dlib::num_fc_outputs(80),
+            dlib::num_con_outputs(15),
             dlib::num_con_outputs(5));
 
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
         // gradient descent with an initial learning rate of 0.01 to accomplish this.
         dlib::dnn_trainer<net_type, dlib::sgd> trainer(net, dlib::sgd(), gpus);
         trainer.set_learning_rate(0.01);
-        trainer.set_min_learning_rate(0.00001);
+        trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(5));
+        trainer.set_min_learning_rate(0.000001);
         trainer.set_mini_batch_size(8192 * gpus.size());
         trainer.set_max_num_epochs(30000);
         trainer.set_iterations_without_progress_threshold(2000);
-        trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(2));
+
         trainer.be_verbose();
         
         std::cout << std::endl << trainer << std::endl;
