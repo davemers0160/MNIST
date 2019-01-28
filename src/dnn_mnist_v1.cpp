@@ -26,6 +26,7 @@
 #include "get_platform.h"
 #include "file_parser.h"
 #include "get_current_time.h"
+#include "num2string.h"
 
 // dlib includes
 #include <dlib/dnn.h>
@@ -35,9 +36,9 @@ using namespace std;
 
 //----------------------------------------------------------------------------------
 std::string version = "L03_4_1";
-std::string net_name = "mnist_net_" + version;
-std::string net_sync_name = "mnist_sync_" + version;
-std::string logfileName = "mnist_log_" + version + "_";
+//std::string net_name = "mnist_net_" + version;
+//std::string net_sync_name = "mnist_sync_" + version;
+//std::string logfileName = "mnist_log_" + version + "_";
 std::string platform;
 //----------------------------------------------------------------------------------
 
@@ -91,6 +92,7 @@ int main(int argc, char** argv)
     std::string net_directory;      // = "../nets/";
     
     const std::vector<int> gpus = { 0 };
+    std::vector<uint32_t> filter_num = { 84,120,16,6 };
 
     typedef std::chrono::duration<double> d_sec;
     auto start_time = chrono::system_clock::now();
@@ -105,6 +107,16 @@ int main(int argc, char** argv)
     std::vector<unsigned long> training_labels;
     std::vector<unsigned long> testing_labels;
     
+    filter_num[0] = std::stoi(argv[1]);
+    filter_num[1] = std::stoi(argv[2]);
+    filter_num[2] = std::stoi(argv[3]);
+    filter_num[3] = std::stoi(argv[4]);
+
+    version = std::string(argv[4]) + "_" + std::string(argv[3]) + "_" + std::string(argv[2]) + "_" + std::string(argv[1]);
+
+    std::string net_name = "mnist_net_" + version;
+    std::string net_sync_name = "mnist_sync_" + version;
+    std::string logfileName = "mnist_log_" + version + "_";
 
     // check the platform
     getPlatform(platform);
@@ -189,13 +201,11 @@ int main(int argc, char** argv)
         DataLogStream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
-
-        // So with that out of the way, we can make a network instance.
-        net_type net(dlib::num_fc_outputs(10), 
-            dlib::num_fc_outputs(50), 
-            dlib::num_fc_outputs(80),
-            dlib::num_con_outputs(15),
-            dlib::num_con_outputs(5));
+        net_type net(dlib::num_fc_outputs(10),
+            dlib::num_fc_outputs(filter_num[0]),
+            dlib::num_fc_outputs(filter_num[1]),
+            dlib::num_con_outputs(filter_num[2]),
+            dlib::num_con_outputs(filter_num[3]));
 
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
         // gradient descent with an initial learning rate of 0.01 to accomplish this.
