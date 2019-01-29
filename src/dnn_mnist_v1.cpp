@@ -28,6 +28,8 @@
 #include "get_current_time.h"
 #include "num2string.h"
 
+#include "mnist_net_v1.h"
+
 // dlib includes
 #include <dlib/dnn.h>
 #include <dlib/data_io.h>
@@ -180,14 +182,14 @@ int main(int argc, char** argv)
     // network output is largest is the predicted label.  So for example, if the first
     // network output is largest then the predicted digit is 0, if the last network output
     // is largest then the predicted digit is 9.  
-    using net_type = dlib::loss_multiclass_log<
-                                dlib::fc<10,        
-                                dlib::prelu<dlib::fc<84,   
-                                dlib::prelu<dlib::fc<120,  
-                                dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<16,5,5,1,1,
-                                dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<6,5,5,1,1,
-                                dlib::input<dlib::matrix<unsigned char>> 
-                                >>>>>>>>>>>>;
+    //using net_type = dlib::loss_multiclass_log<
+    //                            dlib::fc<10,        
+    //                            dlib::prelu<dlib::fc<84,   
+    //                            dlib::prelu<dlib::fc<120,  
+    //                            dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<16,5,5,1,1,
+    //                            dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<6,5,5,1,1,
+    //                            dlib::input<dlib::matrix<unsigned char>> 
+    //                            >>>>>>>>>>>>;
 
     try
     {
@@ -202,11 +204,15 @@ int main(int argc, char** argv)
         DataLogStream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
-        net_type net(dlib::num_fc_outputs(10),
-            dlib::num_fc_outputs(filter_num[0]),
-            dlib::num_fc_outputs(filter_num[1]),
-            dlib::num_con_outputs(filter_num[2]),
-            dlib::num_con_outputs(filter_num[3]));
+        net_type net;
+
+        config_net(net, filter_num);
+
+        //net_type net(dlib::num_fc_outputs(10),
+        //    dlib::num_fc_outputs(filter_num[0]),
+        //    dlib::num_fc_outputs(filter_num[1]),
+        //    dlib::num_con_outputs(filter_num[2]),
+        //    dlib::num_con_outputs(filter_num[3]));
 
         // And then train it using the MNIST data.  The code below uses mini-batch stochastic
         // gradient descent with an initial learning rate of 0.01 to accomplish this.
@@ -214,7 +220,7 @@ int main(int argc, char** argv)
         trainer.set_learning_rate(0.01);
         trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(5));
         trainer.set_min_learning_rate(0.000001);
-        trainer.set_mini_batch_size(8192 * gpus.size());
+        trainer.set_mini_batch_size(1024 * gpus.size());
         trainer.set_max_num_epochs(30000);
         trainer.set_iterations_without_progress_threshold(2000);
 
