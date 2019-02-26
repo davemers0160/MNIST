@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     {
         //HPC version
         program_root = get_path(get_path(get_path(std::string(argv[0]), os_file_sep), os_file_sep), os_file_sep) + os_file_sep;
-        data_directory = "/p/home/dremerso/Projects/mnist/data";
+        data_directory = "../data";
     }
     else
     {
