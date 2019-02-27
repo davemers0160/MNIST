@@ -28,7 +28,7 @@
 #include "get_current_time.h"
 #include "num2string.h"
 
-#include "mnist_net_v1.h"
+#include "mnist_net_v0.h"
 
 // dlib includes
 #include <dlib/dnn.h>
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
         trainer.set_iterations_without_progress_threshold(2000);
 
         trainer.be_verbose();
-        
+
         std::cout << std::endl << trainer << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
         DataLogStream << trainer << std::endl;
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
         std::cout << "Net Name: " << net_name << std::endl;
         std::cout << net << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
-        DataLogStream << "Net Name: " << net_name << std::endl; 
+        DataLogStream << "Net Name: " << net_name << std::endl;
         DataLogStream << net << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
@@ -243,20 +243,26 @@ int main(int argc, char** argv)
         // a factor of 10 and continues running until the loss stops decreasing again.  It will
         // keep doing this until the learning rate has dropped below the min learning rate
         // defined above or the maximum number of epochs as been executed (defaulted to 10000). 
-        std::cout << "Starting Training..." << std::endl;
-        start_time = chrono::system_clock::now(); 
-        trainer.train(training_images, training_labels);
-        stop_time = chrono::system_clock::now();
+        if (false)
+        {
+            std::cout << "Starting Training..." << std::endl;
+            start_time = chrono::system_clock::now();
+            trainer.train(training_images, training_labels);
+            stop_time = chrono::system_clock::now();
+        
 
-        // At this point our net object should have learned how to classify MNIST images.  But
-        // before we try it out let's save it to disk.  Note that, since the trainer has been
-        // running images through the network, net will have a bunch of state in it related to
-        // the last batch of images it processed (e.g. outputs from each layer).  Since we
-        // don't care about saving that kind of stuff to disk we can tell the network to forget
-        // about that kind of transient data so that our file will be smaller.  We do this by
-        // "cleaning" the network before saving it.
-        net.clean();
-        dlib::serialize((net_directory+ net_name + ".dat")) << net;
+            // At this point our net object should have learned how to classify MNIST images.  But
+            // before we try it out let's save it to disk.  Note that, since the trainer has been
+            // running images through the network, net will have a bunch of state in it related to
+            // the last batch of images it processed (e.g. outputs from each layer).  Since we
+            // don't care about saving that kind of stuff to disk we can tell the network to forget
+            // about that kind of transient data so that our file will be smaller.  We do this by
+            // "cleaning" the network before saving it.
+            net.clean();
+
+            dlib::serialize((net_directory + net_name + ".dat")) << net;
+        }
+
 
         // Now if we later wanted to recall the network from disk we can simply say:
         // deserialize("mnist_network.dat") >> net;
@@ -265,36 +271,68 @@ int main(int argc, char** argv)
         std::cout << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
         DataLogStream << "Training Complete.  Elapsed Time: " << elapsed_time.count() / 3600 << " hours" << std::endl;
 
+        std::cout << "------------------------------------------------------------------" << std::endl;
+
+        net_type test_net;
+        //config_net(test_net, filter_num);
+        std::string test_net_name = "D:/Projects/MNIST/nets/mnist_net_04_15_120_84.dat";
+        dlib::deserialize(test_net_name) >> test_net;
+
+        std::cout << test_net_name << std::endl;
+        std::cout << test_net << std::endl;
+
         // Now let's run the training images through the network.  This statement runs all the
         // images through it and asks the loss layer to convert the network's raw output into
         // labels.
         std::cout << std::endl << "Analyzing Training Results..." << std::endl << std::endl;
+        // run the first set through to prime the GPU
+        dlib::matrix<double, 1, 3> training_results = eval_net_performance(test_net, training_images, training_labels);
 
-        start_time = chrono::system_clock::now();
-        dlib::matrix<double, 1, 3> training_results = eval_net_performance(net, training_images, training_labels);
-        stop_time = chrono::system_clock::now();
-        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        double avg_train = elapsed_time.count() / (double)training_images.size();
+        uint16_t time_num = 50;
+        double avg_train_time = 0.0;
+        for (uint32_t idx = 0; idx < time_num; ++idx)
+        {
+            start_time = chrono::system_clock::now();
+            test_net(training_images);
+            stop_time = chrono::system_clock::now();
+            elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+            avg_train_time += elapsed_time.count();
+            std::cout << ".";
+        }
+        avg_train_time = avg_train_time / (double)time_num;
+        std::cout << endl;
+
+        //double avg_train_time = elapsed_time.count() / (double)training_images.size();
 
         std::cout << "------------------------------------------------------------------" << std::endl;
-        std::cout << "Average run time:   " << avg_train << std::endl;
+        std::cout << "Average run time:   " << avg_train_time << std::endl;
         std::cout << "Training num_right: " << training_results(0,0) << std::endl;
         std::cout << "Training num_wrong: " << training_results(0,1) << std::endl;
         std::cout << "Training accuracy:  " << training_results(0,2) << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
 
+        double avg_test_time = 0.0;
+
         // Let's also see if the network can correctly classify the testing images.  Since
         // MNIST is an easy dataset, we should see at least 99% accuracy.
         std::cout << std::endl << "Analyzing Test Results..." << std::endl << std::endl;
+        dlib::matrix<double, 1, 3> test_results = eval_net_performance(test_net, testing_images, testing_labels);
 
-        start_time = chrono::system_clock::now();
-        dlib::matrix<double, 1, 3> test_results = eval_net_performance(net, testing_images, testing_labels);
-        stop_time = chrono::system_clock::now();
-        elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
-        double avg_test = elapsed_time.count() / (double)testing_images.size();
+        for (uint32_t idx = 0; idx < time_num; ++idx)
+        {
+            start_time = chrono::system_clock::now();
+            test_net(testing_images);
+            stop_time = chrono::system_clock::now();
+            elapsed_time = chrono::duration_cast<d_sec>(stop_time - start_time);
+            avg_test_time += elapsed_time.count();
+            std::cout << ".";
+        }
+        avg_test_time = avg_test_time / (double)time_num;
+        std::cout << endl;
+        //double avg_test = elapsed_time.count() / (double)testing_images.size();
 
         std::cout << "------------------------------------------------------------------" << std::endl;
-        std::cout << "Average run time:   " << avg_test << std::endl;
+        std::cout << "Average run time:   " << avg_test_time << std::endl;
         std::cout << "Test num_right: " << test_results(0,0) << std::endl;
         std::cout << "Test num_wrong: " << test_results(0,1) << std::endl;
         std::cout << "Test accuracy:  " << test_results(0,2) << std::endl;
@@ -303,7 +341,7 @@ int main(int argc, char** argv)
         DataLogStream << "------------------------------------------------------------------" << std::endl;
         DataLogStream << training_results(0, 0) << ", " << training_results(0, 1) << ", " << training_results(0, 2) << ", "
                       << test_results(0, 0) << ", " << test_results(0, 1) << ", " << test_results(0, 2) << ", "
-                      << avg_train << ", " << avg_test << std::endl;
+                      << avg_train_time << ", " << avg_test_time << std::endl;
 
         // Finally, you can also save network parameters to XML files if you want to do
         // something with the network in another tool.  For example, you could use dlib's
