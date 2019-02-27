@@ -275,11 +275,15 @@ int main(int argc, char** argv)
 
         net_type test_net;
         //config_net(test_net, filter_num);
-        std::string test_net_name = "D:/Projects/MNIST/nets/mnist_net_04_15_120_84.dat";
+        std::string test_net_name = "D:/Projects/MNIST/nets/mnist_net_04_13_76_56.dat";
         dlib::deserialize(test_net_name) >> test_net;
 
         std::cout << test_net_name << std::endl;
         std::cout << test_net << std::endl;
+
+        DataLogStream << "------------------------------------------------------------------" << std::endl;
+        DataLogStream << "test_net: " << test_net_name << std::endl;
+        DataLogStream << test_net << std::endl;
 
         // Now let's run the training images through the network.  This statement runs all the
         // images through it and asks the loss layer to convert the network's raw output into
