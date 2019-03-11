@@ -275,7 +275,7 @@ int main(int argc, char** argv)
 
         net_type test_net;
         //config_net(test_net, filter_num);
-        std::string test_net_name = "D:/Projects/MNIST/nets/mnist_net_04_13_76_56.dat";
+        std::string test_net_name = (net_directory + net_name + ".dat"); // "D:/Projects/MNIST/nets/mnist_net_04_13_76_56.dat";
         dlib::deserialize(test_net_name) >> test_net;
 
         std::cout << test_net_name << std::endl;
