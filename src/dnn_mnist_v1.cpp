@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     const std::string os_file_sep = "/";
     std::string program_root;
     std::string data_directory;     // = "../data";
-    std::string save_directry;      // = "../results/";
+    std::string save_directory;      // = "../results/";
     std::string net_directory;      // = "../nets/";
     
     const std::vector<int> gpus = { 0 };
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
     std::string logfileName = "mnist_log_" + version + "_";
 
     // check the platform
-    getPlatform(platform);
+    get_platform(platform);
     uint8_t HPC = 0;
 
     if (platform.compare(0, 3, "HPC") == 0)
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 #if defined(_WIN32) | defined(__WIN32__) | defined(__WIN32) | defined(_WIN64) | defined(__WIN64)
     program_root = get_path(get_path(get_path(std::string(argv[0]), "\\"), "\\"), "\\") + os_file_sep;
     net_directory = program_root + "nets/";
-    save_directry = program_root + "results/";
+    save_directory = program_root + "results/";
     data_directory = "../data";
 #else    
     if (HPC == 1)
@@ -196,8 +196,8 @@ int main(int argc, char** argv)
         get_current_time(sdate, stime);
         logfileName = logfileName + sdate + "_" + stime + ".txt";
 
-        std::cout << "Log File: " << (save_directry + logfileName) << std::endl;
-        DataLogStream.open((save_directry + logfileName), ios::out | ios::app);
+        std::cout << "Log File: " << (save_directory + logfileName) << std::endl;
+        DataLogStream.open((save_directory + logfileName), ios::out | ios::app);
 
         // Add the date and time to the start of the log file
         DataLogStream << "------------------------------------------------------------------" << std::endl;
@@ -220,8 +220,8 @@ int main(int argc, char** argv)
         trainer.set_learning_rate(0.01);
         trainer.set_synchronization_file((net_directory + net_sync_name), std::chrono::minutes(5));
         trainer.set_min_learning_rate(0.000001);
-        trainer.set_mini_batch_size(1024 * gpus.size());
-        trainer.set_max_num_epochs(30000);
+        trainer.set_mini_batch_size(512 * gpus.size());
+        trainer.set_max_num_epochs(100);
         trainer.set_iterations_without_progress_threshold(2000);
 
         trainer.be_verbose();
@@ -238,18 +238,38 @@ int main(int argc, char** argv)
         DataLogStream << net << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
+        init_gorgon((save_directory + "gorgon_mnist_"));
+
         // Finally, this line begins training.  By default, it runs SGD with our specified
         // learning rate until the loss stops decreasing.  Then it reduces the learning rate by
         // a factor of 10 and continues running until the loss stops decreasing again.  It will
         // keep doing this until the learning rate has dropped below the min learning rate
         // defined above or the maximum number of epochs as been executed (defaulted to 10000). 
-        if (false)
+        if (true)
         {
             std::cout << "Starting Training..." << std::endl;
             start_time = chrono::system_clock::now();
             trainer.train(training_images, training_labels);
             stop_time = chrono::system_clock::now();
         
+            //std::vector<float> g1_weights = gc_01.get_params(net);
+            //std::vector<float> g2_weights = gc_02.get_params(net);
+            //std::vector<float> g3_weights = gc_03.get_params(net);
+            //std::vector<float> g4_weights = gc_04.get_params(net);
+            //std::vector<float> g5_weights = gc_05.get_params(net);
+            //save_gorgon(net, 4);
+
+            //trainer.set_max_num_epochs(6);
+            //trainer.train(training_images, training_labels);
+            //stop_time = chrono::system_clock::now();
+
+            //save_gorgon(net, 8);
+
+            //std::vector<float> g1_weights2 = gc_01.get_params(net);
+            //std::vector<float> g2_weights2 = gc_02.get_params(net);
+            //std::vector<float> g3_weights2 = gc_03.get_params(net);
+            //std::vector<float> g4_weights2 = gc_04.get_params(net);
+            //std::vector<float> g5_weights2 = gc_05.get_params(net);
 
             // At this point our net object should have learned how to classify MNIST images.  But
             // before we try it out let's save it to disk.  Note that, since the trainer has been
@@ -258,11 +278,30 @@ int main(int argc, char** argv)
             // don't care about saving that kind of stuff to disk we can tell the network to forget
             // about that kind of transient data so that our file will be smaller.  We do this by
             // "cleaning" the network before saving it.
+
+            // try copying a previous set of filters into the network
+            //auto& layer_details = dlib::layer<1>(net).layer_details();
+            //auto& layer_params = layer_details.get_layer_params();
+            //float *params_data = layer_params.host();
+            //dlib::alias_tensor_instance tmp = (dlib::alias_tensor_instance)layer_details.get_layer_params();
+
+            //float *params_data = dlib::mat(layer_params.host());
+            //float *params_data = dlib::mat(layer_details.get_layer_params());
+
+            
+
+            //for (uint64_t jdx = 0; jdx < g1_weights.size(); ++jdx)
+            //{
+            //    params_data[jdx] = g1_weights[jdx];
+            //}
+
+
             net.clean();
 
             dlib::serialize((net_directory + net_name + ".dat")) << net;
         }
 
+        close_gorgon();
 
         // Now if we later wanted to recall the network from disk we can simply say:
         // deserialize("mnist_network.dat") >> net;
