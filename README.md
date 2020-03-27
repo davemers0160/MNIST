@@ -16,6 +16,22 @@ Follow the instruction for each of the dependencies according to your operating 
 
 ## Build
 
+The project uses CMake as the pmrimary mechanism to build the executables.  There are some modifications that may have to be made to the CMakeLists.txt file in order to get the project to build successfully.
+
+The first thing that must be done is to create an environment variable called "PLATFORM".  The CMakeLists.txt file uses this variable to determine where to look for the other required repositories and/or libraries.  These will be machine specific.
+
+To create an environment variable in Windows (drop the -m if you do not have elevated privileges):
+```
+setx -m PLATFORM MY_PC
+```
+
+In Linux (usually placed in .profile or .bashrc):
+```
+export PLATFORM=MY_PC
+```
+
+In the CMakeLists.txt file make sure to add a check for the platform you've added and point to the right locations for the repositories/libraries.
+
 ### Windows
 
 Execute the following commands in a Windows command window:
@@ -54,24 +70,7 @@ The -- -j4 tells the make to use 4 cores to build the code.  This number can be 
 
 ## Running
 
-To run the code you have two options.  The first is to supply individual parameters described in the table below.  For parameters that were not supplied at runtime the default values will be used.
+To run the code you have two options.  
 
-
-
-
-
-To supply the parameters at runtime they can be called in the following manner:
-
-```
-executable -x_off=0 -fps=5.1
-```
-
-The second method (preferred) is to supply all of the parameters in a single file.  Using this method all of the input parametes must be supplied and they must be in the order outlined in the example file *cam_config.txt*
-
-To use the file enter the following:
-
-```
-executable -cfg_file=../cam_config.txt
-```
 
 It is important to note that if the output folder does not exist the program will run, but there may not be any indication that the data is not being saved.
