@@ -16,36 +16,60 @@
 # linux: cmake --build . --config Release -- -j4
 #
 
-
 cmake_minimum_required(VERSION 2.8.12)
 
 PROJECT(MNIST_Project)
 set(exe_name "dnn_mnist")
 
-
 set(PLATFORM "$ENV{PLATFORM}" CACHE INTERNAL "Copied from environment variable")
 message("Platform: " ${PLATFORM})
 
 if(WIN32)
-	include(D:/dlib/dlib/cmake)
-    set(COMMON_ROOT "D:/Common")
-else()
-    if(${PLATFORM} STREQUAL "HPC")
-        include(~/dlib/dlib/cmake)
-        set(COMMON_ROOT "~/Common")
+    if(${PLATFORM} STREQUAL "Laptop")
+        set(COMMON_ROOT "D:/Common")
+        set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
+        include(D:/dlib-19.19/dlib/cmake)
     else()
+        set(COMMON_ROOT "D:/Common")
+        set(DLIB_CONTRIB "D:/Projects/dlib-contrib")
+        include(D:/dlib-19.19/dlib/cmake)
+    endif()
+else()
+    if(${PLATFORM} STREQUAL "MainGear")
+        set(_ECLIPSE_VERSION "3.8")
+        set(COMMON_ROOT "~/Projects/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        include(~/dlib-19.18/dlib/cmake)
+    elseif(${PLATFORM} STREQUAL "HPC")
         include(~/dlib/dlib/cmake)
         set(COMMON_ROOT "~/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        include(~/dlib-19.18/dlib/cmake)
+    else()
+        set(COMMON_ROOT "~/Common")
+        set(DLIB_CONTRIB "~/Projects/dlib-contrib")
+        include(~/dlib-19.18/dlib/cmake)
     endif()
 endif()
 
-# include(${COMMON_ROOT}/cmake_utils/use_cpp_11.cmake)
-# include(${COMMON_ROOT}/cmake_utils/use_sse_avx.cmake)
+# grab all of the *.c and *.cpp files in the src directory
+file(GLOB SOURCES "src/*.c*"	
+    "${COMMON_ROOT}/src/*.cpp"
+    "${DLIB_CONTRIB}/src/*.cpp"
+    ) 
 
-file(GLOB SOURCES "src/*.cpp")
+set(project_includes "include" 
+    "${COMMON_ROOT}/include" 
+    "${DLIB_CONTRIB}/include" 
+    )
 
-set(project_includes "include" "${COMMON_ROOT}/include")
-
+# find OpenCV
+#find_package(OpenCV REQUIRED)
+#if (OpenCV_FOUND)
+#	set(project_includes ${project_includes} ${OpenCV_INCLUDE_DIRS})
+#else()
+#	message("OpenCV not found, so we won't build the project.")
+#endif()
 
 message(" ")
 message("--------------------------------------------------------")
@@ -54,19 +78,9 @@ foreach(S ${SOURCES})
     message("  " ${S})
 endforeach()
 message("--------------------------------------------------------")
-message(" ")
-
-# find OpenCV
-find_package(OpenCV REQUIRED)
-if (OpenCV_FOUND)
-	set(project_includes ${project_includes} ${OpenCV_INCLUDE_DIRS})
-
-else()
-	message("OpenCV not found, so we won't build the project.")
-endif()
-
 
 message(" ")
+
 message("--------------------------------------------------------")
 message("Project Includes: ")
 foreach(S ${project_includes})
@@ -78,7 +92,7 @@ message(" ")
 
 include_directories(${project_includes})
 add_executable(${exe_name} ${SOURCES})
-target_link_libraries(${exe_name} dlib::dlib ${OpenCV_LIBS})
+target_link_libraries(${exe_name} dlib::dlib)
 
 if(WIN32)
     message("MSVC Version: " ${MSVC_VERSION})

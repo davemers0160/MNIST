@@ -8,9 +8,9 @@ This project contains the project files for training a network on the MNIST data
 The code in this repository has the following dependecies:
 
 1. [CMake 2.8.12+](https://cmake.org/download/)
-2. [OpenCV v4+](https://opencv.org/releases/)
+2. [Dlib](http://dlib.net)
 3. [davemers0160 common code repository](https://github.com/davemers0160/Common)
-4. [Dlib](http://dlib.net)
+4. [davemers0160 dlib-contrib repository](https://github.com/davemers0160/dlib-contrib)
 
 Follow the instruction for each of the dependencies according to your operating system. 
 
@@ -70,7 +70,18 @@ The -- -j4 tells the make to use 4 cores to build the code.  This number can be 
 
 ## Running
 
-To run the code you have two options.  
+To run the code enter the executable name.  This will start the training using the default convolutional/fully connected layer sizes.
 
+To supply custom values the 4 numbers that represent the size of the network, starting with the layer closest to the output of the network
 
-It is important to note that if the output folder does not exist the program will run, but there may not be any indication that the data is not being saved.
+Windows:
+```
+dnn_mnist 20 100 10 5
+```
+
+Linux:
+```
+./dnn_mnist 20 100 10 5
+```
+
+It is important to note that if the output folders (nets, results) do not exist the program will run, but there may not be any indication that the data is not being saved.

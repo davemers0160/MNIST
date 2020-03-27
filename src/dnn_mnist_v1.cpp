@@ -38,7 +38,7 @@ using namespace std;
 
 //----------------------------------------------------------------------------------
 
-std::string version = "04_15_120_84";
+std::string version = "06_16_120_84";
 //std::string net_name = "mnist_net_" + version;
 //std::string net_sync_name = "mnist_sync_" + version;
 //std::string logfileName = "mnist_log_" + version + "_";
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     std::string net_directory;      // = "../nets/";
     
     const std::vector<int> gpus = { 0 };
-    std::vector<uint32_t> filter_num = { 84,120,16,6 };
+    std::vector<uint32_t> filter_num = { 84, 120, 16, 6 };
 
     typedef std::chrono::duration<double> d_sec;
     auto start_time = chrono::system_clock::now();
@@ -110,12 +110,17 @@ int main(int argc, char** argv)
     std::vector<unsigned long> training_labels;
     std::vector<unsigned long> testing_labels;
     
-    filter_num[0] = std::stoi(argv[1]);
-    filter_num[1] = std::stoi(argv[2]);
-    filter_num[2] = std::stoi(argv[3]);
-    filter_num[3] = std::stoi(argv[4]);
-
-    version = std::string(argv[4]) + "_" + std::string(argv[3]) + "_" + std::string(argv[2]) + "_" + std::string(argv[1]);
+    // check to see if values have been potentially supplied
+    // if not then use theb default values
+    if (argc == 5)
+    {
+        filter_num[0] = std::stoi(argv[1]);
+        filter_num[1] = std::stoi(argv[2]);
+        filter_num[2] = std::stoi(argv[3]);
+        filter_num[3] = std::stoi(argv[4]);
+        
+        version = std::string(argv[4]) + "_" + std::string(argv[3]) + "_" + std::string(argv[2]) + "_" + std::string(argv[1]);
+    }
 
     std::string net_name = "mnist_net_" + version;
     std::string net_sync_name = "mnist_sync_" + version;
@@ -238,7 +243,7 @@ int main(int argc, char** argv)
         DataLogStream << net << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
 
-        init_gorgon((save_directory + "gorgon_mnist_"));
+        //init_gorgon((save_directory + "gorgon_mnist_"));
 
         // Finally, this line begins training.  By default, it runs SGD with our specified
         // learning rate until the loss stops decreasing.  Then it reduces the learning rate by
@@ -301,7 +306,7 @@ int main(int argc, char** argv)
             dlib::serialize((net_directory + net_name + ".dat")) << net;
         }
 
-        close_gorgon();
+        //close_gorgon();
 
         // Now if we later wanted to recall the network from disk we can simply say:
         // deserialize("mnist_network.dat") >> net;
@@ -313,7 +318,7 @@ int main(int argc, char** argv)
         std::cout << "------------------------------------------------------------------" << std::endl;
 
         net_type test_net;
-        //config_net(test_net, filter_num);
+
         std::string test_net_name = (net_directory + net_name + ".dat"); // "D:/Projects/MNIST/nets/mnist_net_04_13_76_56.dat";
         dlib::deserialize(test_net_name) >> test_net;
 
