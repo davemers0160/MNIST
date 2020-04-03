@@ -142,7 +142,9 @@ int main(int argc, char** argv)
     program_root = get_path(get_path(get_path(std::string(argv[0]), "\\"), "\\"), "\\") + os_file_sep;
     net_directory = program_root + "nets/";
     save_directory = program_root + "results/";
-    data_directory = "../data";
+    data_directory = program_root + "data/";
+    //data_directory = "../data";
+
 #else    
     if (HPC == 1)
     {

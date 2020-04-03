@@ -234,7 +234,7 @@ pip-log.txt
 ###############################################################################
 results/
 nets/
-sample_data/
+data/test/
 gorgon_save/
 
 
