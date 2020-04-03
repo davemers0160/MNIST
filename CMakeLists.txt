@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-#  Root CMake file for DfD Graph Cuts
+#  Root CMake file for MNIST Project
 # ----------------------------------------------------------------------------
 #
 # To perform an out of source build do the following on the command line:
@@ -23,6 +23,8 @@ set(exe_name "dnn_mnist")
 
 set(PLATFORM "$ENV{PLATFORM}" CACHE INTERNAL "Copied from environment variable")
 message("Platform: " ${PLATFORM})
+
+option(USE_AVX_INSTRUCTIONS  "Compile your program with AVX instructions"  ON)
 
 if(WIN32)
     if(${PLATFORM} STREQUAL "Laptop")
