@@ -14,7 +14,7 @@ using net_type = dlib::loss_multiclass_log<
     dlib::sig<dlib::con<120, 5, 5, 1, 1,
     dlib::sig<dlib::max_pool<2, 2, 2, 2, dlib::con<16, 5, 5, 1, 1,
     dlib::sig<dlib::max_pool<2, 2, 2, 2, dlib::con<6, 5, 5, 1, 1,
-    dlib::input<dlib::matrix<unsigned char>>
+    dlib::tag1<dlib::input<dlib::matrix<unsigned char>>>
     >>>>>>>>>>>>;
 
 // ----------------------------------------------------------------------------------------

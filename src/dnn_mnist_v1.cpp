@@ -24,6 +24,7 @@
 
 // Custom includes
 #include "get_platform.h"
+#include "file_ops.h"
 #include "file_parser.h"
 #include "get_current_time.h"
 #include "num2string.h"
@@ -157,7 +158,7 @@ int main(int argc, char** argv)
     }
 
     net_directory = program_root + "nets/";
-    save_directry = program_root + "results/";
+    save_directory = program_root + "results/";
 
 #endif
 
