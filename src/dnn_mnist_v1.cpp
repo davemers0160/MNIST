@@ -153,8 +153,9 @@ int main(int argc, char** argv)
     else
     {
         // Ubuntu
-        program_root = "/home/owner/MNIST/";
-        data_directory = "../data";
+        //program_root = "/home/owner/Projects/MNIST/";     // use this if the get_ubuntu_path does not work
+        program_root = get_ubuntu_path();
+        data_directory = program_root + "data/";
     }
 
     net_directory = program_root + "nets/";
@@ -162,43 +163,23 @@ int main(int argc, char** argv)
 
 #endif
 
-    // load the data in using the dlib built in function
-    dlib::load_mnist_dataset(data_directory, training_images, training_labels, testing_images, testing_labels);
-
-    std::cout << "Loaded " << training_images.size() << " training images." << std::endl;
-    std::cout << "Loaded " << testing_images.size() << " test images." << std::endl << std::endl;
-
-    // Now let's define the LeNet.  Broadly speaking, there are 3 parts to a network
-    // definition.  The loss layer, a bunch of computational layers, and then an input
-    // layer.  You can see these components in the network definition below.  
-    // 
-    // The input layer here says the network expects to be given matrix<unsigned char>
-    // objects as input.  In general, you can use any dlib image or matrix type here, or
-    // even define your own types by creating custom input layers.
-    //
-    // Then the middle layers define the computation the network will do to transform the
-    // input into whatever we want.  Here we run the image through multiple convolutions,
-    // ReLU units, max pooling operations, and then finally a fully connected layer that
-    // converts the whole thing into just 10 numbers.  
-    // 
-    // Finally, the loss layer defines the relationship between the network outputs, our 10
-    // numbers, and the labels in our dataset.  Since we selected loss_multiclass_log it
-    // means we want to do multiclass classification with our network.   Moreover, the
-    // number of network outputs (i.e. 10) is the number of possible labels.  Whichever
-    // network output is largest is the predicted label.  So for example, if the first
-    // network output is largest then the predicted digit is 0, if the last network output
-    // is largest then the predicted digit is 9.  
-    //using net_type = dlib::loss_multiclass_log<
-    //                            dlib::fc<10,        
-    //                            dlib::prelu<dlib::fc<84,   
-    //                            dlib::prelu<dlib::fc<120,  
-    //                            dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<16,5,5,1,1,
-    //                            dlib::max_pool<2,2,2,2,dlib::prelu<dlib::con<6,5,5,1,1,
-    //                            dlib::input<dlib::matrix<unsigned char>> 
-    //                            >>>>>>>>>>>>;
-
+    std::cout << std::endl;
+    std::cout << "------------------------------------------------------------------" << std::endl;
+    std::cout << "program root:   " << program_root << std::endl;
+    std::cout << "data directory: " << data_directory << std::endl;
+    std::cout << "net directory:  " << net_directory << std::endl;
+    std::cout << "save directory: " << save_directory << std::endl;
+    std::cout << std::endl;
+    
     try
     {
+        // load the data in using the dlib built in function
+        dlib::load_mnist_dataset(data_directory, training_images, training_labels, testing_images, testing_labels);
+
+        std::cout << "------------------------------------------------------------------" << std::endl;
+        std::cout << "Loaded " << training_images.size() << " training images." << std::endl;
+        std::cout << "Loaded " << testing_images.size() << " test images." << std::endl << std::endl;
+        
         get_current_time(sdate, stime);
         logfileName = logfileName + sdate + "_" + stime + ".txt";
 
@@ -209,7 +190,20 @@ int main(int argc, char** argv)
         DataLogStream << "------------------------------------------------------------------" << std::endl;
         DataLogStream << "Version: 2.0    Date: " << sdate << "    Time: " << stime << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
-
+        
+        // Now let's define the LeNet.  Broadly speaking, there are 3 parts to a network
+        // definition.  The loss layer, a bunch of computational layers, and then an input
+        // layer.  You can see these components in the network definition below.  
+        // 
+        // The input layer here says the network expects to be given matrix<unsigned char>
+        // objects as input.  In general, you can use any dlib image or matrix type here, or
+        // even define your own types by creating custom input layers.
+        //
+        // Then the middle layers define the computation the network will do to transform the
+        // input into whatever we want.  Here we run the image through multiple convolutions,
+        // ReLU units, max pooling operations, and then finally a fully connected layer that
+        // converts the whole thing into just 10 numbers.  
+        
         net_type net;
 
         config_net(net, filter_num);
@@ -231,8 +225,9 @@ int main(int argc, char** argv)
         trainer.set_iterations_without_progress_threshold(2000);
 
         trainer.be_verbose();
-
-        std::cout << std::endl << trainer << std::endl;
+        
+        std::cout << std::endl << "------------------------------------------------------------------" << std::endl;
+        std::cout << trainer << std::endl;
         std::cout << "------------------------------------------------------------------" << std::endl;
         DataLogStream << trainer << std::endl;
         DataLogStream << "------------------------------------------------------------------" << std::endl;
