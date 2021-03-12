@@ -22,6 +22,10 @@ PROJECT(MNIST_Project)
 set(exe_name "dnn_mnist")
 
 set(PLATFORM "$ENV{PLATFORM}" CACHE INTERNAL "Copied from environment variable")
+if("${PLATFORM}" STREQUAL "")
+    set(PLATFORM "NOT_SET")
+    message("The PLATFORM Environment variable is not set on this system.  Setting it to:")
+endif()
 message("Platform: " ${PLATFORM})
 
 option(USE_AVX_INSTRUCTIONS  "Compile your program with AVX instructions"  ON)
